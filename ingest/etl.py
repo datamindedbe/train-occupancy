@@ -193,16 +193,16 @@ def get_distances_to_station(con, date, stationfrom, route):
 
 
 def etl(user, host, password, db, folder):
-    #create_database(user, host, password, db)
+    create_database(user, host, password, db)
     create_tables(user, host, password, db)
-    # results = extract_station_file(folder)
-    # write_to_db(results, user, host, password, db, table='station')
-    # results = extract_feedback_file(folder)
-    # write_to_db(results, user, host, password, db, table='occupancy')
-    # results = extract_json_files(folder)
-    # for result in results:
-    #     write_to_db(result[1], user, host, password, db, table='connection')
-    #     print '%s processed' % result[0]
+    results = extract_station_file(folder)
+    write_to_db(results, user, host, password, db, table='station')
+    results = extract_feedback_file(folder)
+    write_to_db(results, user, host, password, db, table='occupancy')
+    results = extract_json_files(folder)
+    for result in results:
+        write_to_db(result[1], user, host, password, db, table='connection')
+        print '%s processed' % result[0]
     results = extract_distances(user, host, password, db)
     for result in results:
         write_to_db(result, user, host, password, db, table='distance')

@@ -10,18 +10,18 @@ from sklearn.preprocessing import Imputer
 from sqlalchemy import create_engine
 
 ALL_FEATURES = [
-    # 'useragent',
+    'useragent',
     'month',
     'day',
     'dow',
     'hour',
     'quarter',
-    # 'vehicle',
+    'vehicle',
     # 'stationfrom', #departurestop
     # 'arrivalstop',
     'traintype',
     'departurename',
-    # 'arrivalname',
+    'arrivalname',
     'weighted_freqs',
     'absolute_freqs',
     'distance',
@@ -33,10 +33,10 @@ ALL_FEATURES = [
 ]
 
 CATEGORICAL_FEATURES = [
-    # 'useragent',
-    # 'vehicle',
+    'useragent',
+    'vehicle',
     'departurename',
-    # 'arrivalname',
+    'arrivalname',
     'traintype'
 ]
 
