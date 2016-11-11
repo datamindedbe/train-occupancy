@@ -1,0 +1,13 @@
+# REQUIREMENTS
+* You need python 2, sklearn and related libraries to run these scripts
+* You also need a (postgres) database
+
+# RUN
+
+1. Adjust hardcoded variables at top of ingest.py, etl.py and predict.py to your environment
+2. Run ingest.py
+3. run etl.py
+4. run predict.py
+
+# Context
+You can read all about this project at this blogpost: https://dataminded.be/blog/predicting-occupancy-nmbs-trains
