@@ -46,6 +46,6 @@ def retrieve_feedback(feedback_url, folder):
             outfile.write(data)
 
 
-#retrieve_schedule(URL_ROOT, start=START, end=END, folder=DATA)
-#retrieve_stations(STATIONS_URL, DATA)
+retrieve_schedule(URL_ROOT, start=START, end=END, folder=DATA)
+retrieve_stations(STATIONS_URL, DATA)
 retrieve_feedback(FEEDBACK_URL, DATA)
