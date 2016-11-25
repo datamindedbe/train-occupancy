@@ -15,7 +15,7 @@ END = datetime(2016, 11, 1, 0, 0, 0)
 def retrieve_schedule(url_root, start, end, folder):
     current = start
     while current < end:
-        ts = current.strftime('%Y-%m-%dT%H:%M')
+        ts = current.strftime('%Y-%m-%dT%H-%M')
         url = url_root + urllib.quote(ts)
         response = requests.get(url)
         if response.ok:

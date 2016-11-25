@@ -70,7 +70,7 @@ def make_predictions_random_forest(df, features, target, split=0.70):
 
     clf = Pipeline([
         ("imputer", Imputer(strategy="mean", axis=0)),
-        # ('feature_selection', SelectKBest(k=200)),
+        ('feature_selection', SelectKBest(k=200)),
         ("forest", RandomForestClassifier(
             min_samples_leaf=1, min_samples_split=10, n_estimators=60, max_depth=None, criterion='gini'))])
     clf.fit(train[features], train[target])
@@ -221,3 +221,5 @@ def pivot_stations(df, engine):
 
 
 make_predictions(ALL_FEATURES, CATEGORICAL_FEATURES, TARGET, CONNECTION_STRING)
+
+
