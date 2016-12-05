@@ -8,8 +8,8 @@ DATA = '../data/'
 URL_ROOT = 'http://graph.spitsgids.be/connections/?departureTime='
 STATIONS_URL = 'https://irail.be/stations/NMBS'
 FEEDBACK_URL = 'https://gtfs.irail.be/nmbs/feedback/occupancy-until-20161029.newlinedelimitedjsonobjects'
-START = datetime(2016, 8, 13, 15, 0, 0)
-END = datetime(2016, 11, 1, 0, 0, 0)
+START = datetime(2016, 11, 1, 1, 0, 0)
+END = datetime(2016, 12, 4, 0, 0, 0)
 
 
 def retrieve_schedule(url_root, start, end, folder):
@@ -28,6 +28,7 @@ def retrieve_schedule(url_root, start, end, folder):
             print '%s failed' % url
 
         current = current + timedelta(minutes=10)
+
 
 def retrieve_stations(stations_url, folder):
     response = requests.get(stations_url, headers={'accept': 'application/json'}, verify=False)
