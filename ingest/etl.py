@@ -88,25 +88,26 @@ def extract_json_files(folder):
     json_files = [pos_json for pos_json in os.listdir(folder) if pos_json.endswith('.json')]
     result = []
     for js in json_files:
-        with open(os.path.join(folder, js)) as json_file:
-            data = json.load(json_file)
-            for conn in data['@graph']:
-                result.append([
-                    conn['departureStop'].replace('http://irail.be/stations/NMBS/', ''),
-                    conn['departureTime'],
-                    conn['departureTime'][:10].replace('-', ''),
-                    conn['departureDelay'] if 'departureDelay' in conn else "0",
-                    conn['arrivalStop'].replace('http://irail.be/stations/NMBS/', ''),
-                    conn['arrivalTime'],
-                    conn['arrivalTime'][:10].replace('-', ''),
-                    conn['arrivalDelay'] if 'arrivalDelay' in conn else "0",
-                    conn['gtfs:route'].replace('http://irail.be/vehicle/', ''),
-                    conn['gtfs:trip'].replace('http://irail.be/trips/', ''),
-                    conn['@id'].replace('http://irail.be/connections/', '')])
-            if len(result) > 20000:
-                return_value = result
-                result = []
-                yield (js, return_value)
+        if not 'station' in js:
+            with open(os.path.join(folder, js)) as json_file:
+                data = json.load(json_file)
+                for conn in data['@graph']:
+                    result.append([
+                        conn['departureStop'].replace('http://irail.be/stations/NMBS/', ''),
+                        conn['departureTime'],
+                        conn['departureTime'][:10].replace('-', ''),
+                        conn['departureDelay'] if 'departureDelay' in conn else "0",
+                        conn['arrivalStop'].replace('http://irail.be/stations/NMBS/', ''),
+                        conn['arrivalTime'],
+                        conn['arrivalTime'][:10].replace('-', ''),
+                        conn['arrivalDelay'] if 'arrivalDelay' in conn else "0",
+                        conn['gtfs:route'].replace('http://irail.be/vehicle/', ''),
+                        conn['gtfs:trip'].replace('http://irail.be/trips/', ''),
+                        conn['@id'].replace('http://irail.be/connections/', '')])
+                if len(result) > 20000:
+                    return_value = result
+                    result = []
+                    yield (js, return_value)
     yield (js, result)
 
 
