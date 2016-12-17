@@ -25,7 +25,7 @@ def create_tables(user, host, password, db):
         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with con.cursor() as cur:
             query = """
-                DROP TABLE IF EXISTS connection;
+                DROP TABLE IF EXISTS connection CASCADE;
                 CREATE TABLE connection(
                   departureStop VARCHAR(255) NOT NULL,
                   departureTime TIMESTAMP NOT NULL,
@@ -40,7 +40,7 @@ def create_tables(user, host, password, db):
                   id VARCHAR(255) NOT NULL
                 );
 
-                DROP TABLE IF EXISTS station;
+                DROP TABLE IF EXISTS station CASCADE;
                 CREATE TABLE station(
                   name VARCHAR(255) NOT NULL,
                   country VARCHAR(255) NOT NULL,
@@ -49,7 +49,7 @@ def create_tables(user, host, password, db):
                   id VARCHAR(255) NOT NULL
                 );
 
-                DROP TABLE IF EXISTS occupancy;
+                DROP TABLE IF EXISTS occupancy CASCADE;
                 CREATE TABLE occupancy(
                   timestamp TIMESTAMP NOT NULL,
                   connection VARCHAR(255) NOT NULL,
@@ -61,7 +61,7 @@ def create_tables(user, host, password, db):
                   userAgent VARCHAR(255) NOT NULL
                 );
 
-                DROP TABLE IF EXISTS distance;
+                DROP TABLE IF EXISTS distance CASCADE;
                 CREATE TABLE distance(
                   stationFrom VARCHAR(255) NOT NULL,
                   stationTo VARCHAR(255) NOT NULL,
@@ -69,6 +69,33 @@ def create_tables(user, host, password, db):
                   date VARCHAR(255) NOT NULL,
                   distance INT NOT NULL
                 );
+
+                DROP VIEW IF EXISTS events;
+                CREATE VIEW events AS (
+                  SELECT
+                    c.*,
+                    c.departuretime AT TIME ZONE 'CET'                    AS departuretime_local,
+                    c.arrivaltime AT TIME ZONE 'CET'                      AS arrivaltime_local,
+                    sa.name                                               AS arrival,
+                    sa.longitude                                          AS arrival_longitude,
+                    sa.latitude                                           AS arrival_latitude,
+                    sa.country                                            AS arrival_country,
+                    sa.longitude :: TEXT                                  AS arrival_longitude_str,
+                    sa.latitude :: TEXT                                   AS arrival_latitude_str,
+                    EXTRACT(MONTH FROM c.departuretime)                   AS departure_month,
+                    EXTRACT(DAY FROM c.departuretime)                     AS departure_day,
+                    EXTRACT(DOW FROM c.departuretime)                     AS departure_dow,
+                    EXTRACT(HOUR FROM c.departuretime AT TIME ZONE 'CET') AS departure_hour,
+                    sd.name                                               AS departure,
+                    sd.longitude                                          AS departure_longitude,
+                    sd.latitude                                           AS departure_latitude,
+                    sd.country                                            AS departure_country,
+                    sd.longitude :: TEXT                                  AS departure_longitude_str,
+                    sd.latitude :: TEXT                                   AS departure_latitude_str,
+                    regexp_replace(c.route, '[^A-Z]', '', 'g')            AS traintype
+
+                  FROM connection c INNER JOIN station sa ON c.arrivalstop = sa.id
+                    INNER JOIN station sd ON c.departurestop = sd.id);
             """
             # query= """
             # DROP TABLE IF EXISTS distance;

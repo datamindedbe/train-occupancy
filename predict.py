@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
@@ -126,17 +127,17 @@ WITH frequencies AS (SELECT
              FROM distance d INNER JOIN frequencies f ON d.stationto = f.departurestop
                INNER JOIN station sf ON d.stationfrom = sf.id
                INNER JOIN station st ON d.stationto = st.id
-             ORDER BY d.vehicle, d.date, d.distance),
+             ORDER BY d.trip, d.date, d.distance),
     weighted_freqs AS (SELECT
                          stationfrom,
-                         vehicle,
+                         trip,
                          date,
                          AVG(distance)               AS distance,
                          SUM(absolute_freq)          AS absolute_freqs,
                          SUM(weighted_freq)          AS weighted_freqs,
                          SUM(weighted_positive_freq) AS weighted_positive_freqs
                        FROM trip
-                       GROUP BY stationfrom, vehicle, date)
+                       GROUP BY stationfrom, trip, date)
 SELECT
   o.occupancy,
   o.useragent,
@@ -173,7 +174,7 @@ SELECT
     0 END                                               AS evening_commute
 FROM occupancy o
   INNER JOIN connection c ON o.stationfrom = c.departurestop AND o.date = c.departuredate AND o.vehicle = c.route
-  INNER JOIN weighted_freqs f ON o.stationfrom = f.stationfrom AND o.vehicle = f.vehicle AND o.date = f.date
+  INNER JOIN weighted_freqs f ON o.stationfrom = f.stationfrom AND o.vehicle = f.trip AND o.date = f.date
   LEFT JOIN station d ON c.departurestop = d.id
   LEFT JOIN station a ON c.arrivalstop = a.id
 ORDER BY occupancy, trip, departuretime;
@@ -214,8 +215,9 @@ def pivot_stations(df, engine):
     """
     distances = pd.read_sql_query(query, con=engine)
     stations = distances['arrivalname'].unique().tolist()
-    dist_pivot = pd.pivot_table(distances, values='distance', index=['stationfrom', 'date', 'vehicle'],
+    dist_pivot = pd.pivot_table(distances, values='distance', index=['stationfrom', 'date', 'trip'],
                                 columns=['arrivalname'], aggfunc=np.mean)
+    dist_pivot = dist_pivot.reindex(df.index.rename(['stationfrom', 'date', 'vehicle']))
     df = df.join(dist_pivot, how='outer')
     return df, stations
 
