@@ -1,0 +1,74 @@
+{
+    "@context": {
+        "name": "http://xmlns.com/foaf/0.1/name", 
+        "country": {
+            "@id": "http://www.geonames.org/ontology#parentCountry", 
+            "@type": "@id"
+        }, 
+        "longitude": "http://www.w3.org/2003/01/geo/wgs84_pos#long", 
+        "avgStopTimes": "http://semweb.mmlab.be/ns/stoptimes#avgStopTimes", 
+        "latitude": "http://www.w3.org/2003/01/geo/wgs84_pos#lat", 
+        "alternative": "http://purl.org/dc/terms/alternative"
+    }, 
+    "@graph": [
+        {
+            "name": "London Saint Pancras International", 
+            "country": "http://sws.geonames.org/2635167/", 
+            "longitude": "-0.1260606", 
+            "avgStopTimes": "0", 
+            "latitude": "51.5310399", 
+            "alternative": [
+                {
+                    "@value": "Londres Saint Pancras", 
+                    "@language": "fr"
+                }, 
+                {
+                    "@value": "Londen Saint Pancras", 
+                    "@language": "nl"
+                }
+            ], 
+            "@id": "http://irail.be/stations/NMBS/007015400"
+        },
+        {
+            "name": "Heusden",
+            "country": "http://sws.geonames.org/2802361/",
+            "longitude": "5.281782",
+            "avgStopTimes": "28.393063583815",
+            "latitude": "51.038207",
+            "@id": "http://irail.be/stations/NMBS/008832243"
+        },
+        {
+            "name": "Zolder",
+            "country": "http://sws.geonames.org/2802361/",
+            "longitude": "5.3299",
+            "avgStopTimes": "28.393063583815",
+            "latitude": "51.033548",
+            "@id": "http://irail.be/stations/NMBS/008832250"
+        },
+        {
+            "name": "Zonhoven",
+            "country": "http://sws.geonames.org/2802361/",
+            "longitude": "5.348815",
+            "avgStopTimes": "28.393063583815",
+            "latitude": "50.989557",
+            "@id": "http://irail.be/stations/NMBS/008832334"
+        },
+        {
+            "name": "Kiewit",
+            "country": "http://sws.geonames.org/2802361/",
+            "longitude": "5.350226",
+            "avgStopTimes": "39.476878612717",
+            "latitude": "50.954841",
+            "@id": "http://irail.be/stations/NMBS/008832375"
+        },
+        {
+            "name": "Mol",
+            "country": "http://sws.geonames.org/2802361/",
+            "longitude": "5.116336",
+            "avgStopTimes": "59.751445086705",
+            "latitude": "51.19105",
+            "@id": "http://irail.be/stations/NMBS/008832409"
+        }
+    ], 
+    "@id": "http://irail.be/stations/NMBS"
+}

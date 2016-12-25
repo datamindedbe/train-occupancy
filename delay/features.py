@@ -1,10 +1,8 @@
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from config import DB, USER, PWD, HOST
 
-
-def build_features():
+def build_features(connection_string):
     query = """
     DROP VIEW IF EXISTS connection_features;
     CREATE VIEW connection_features AS (
@@ -92,11 +90,9 @@ def build_features():
       LEFT JOIN station a ON c.arrivalstop = a.id
     ORDER BY occupancy, trip, departuretime);
     """
-    with connect(user=USER, host=HOST, password=PWD, database=DB) as con:
+    with connect(connection_string) as con:
         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with con.cursor() as cur:
             cur.execute(query)
             cur.close()
 
-
-build_features()

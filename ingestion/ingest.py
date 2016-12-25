@@ -1,15 +1,9 @@
 import json
 import urllib
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os import path
-import requests
 
-DATA = '../data/'
-URL_ROOT = 'http://graph.spitsgids.be/connections/?departureTime='
-STATIONS_URL = 'https://irail.be/stations/NMBS'
-FEEDBACK_URL = 'https://gtfs.irail.be/nmbs/feedback/occupancy-until-20161029.newlinedelimitedjsonobjects'
-START = datetime(2016, 11, 1, 1, 0, 0)
-END = datetime(2016, 12, 4, 0, 0, 0)
+import requests
 
 
 def retrieve_schedule(url_root, start, end, folder):
@@ -20,7 +14,7 @@ def retrieve_schedule(url_root, start, end, folder):
         response = requests.get(url)
         if response.ok:
             data = json.loads(response.content)
-            filename = path.join(folder, ts + '.json')
+            filename = path.join(folder, 'connections', ts + '.json')
             with open(filename, 'w') as outfile:
                 json.dump(data, outfile, indent=4)
             print '%s stored' % url
@@ -34,19 +28,21 @@ def retrieve_stations(stations_url, folder):
     response = requests.get(stations_url, headers={'accept': 'application/json'}, verify=False)
     if response.ok:
         data = json.loads(response.content)
-        filename = path.join(folder, 'stations.json')
+        filename = path.join(folder, 'stations', 'stations.json')
         with open(filename, 'w') as outfile:
             json.dump(data, outfile, indent=4)
+
 
 def retrieve_feedback(feedback_url, folder):
     response = requests.get(feedback_url, verify=False)
     if response.ok:
         data = response.content
-        filename = path.join(folder, 'feedback.ndjson')
+        filename = path.join(folder, 'feedback', 'feedback.ndjson')
         with open(filename, 'w') as outfile:
             outfile.write(data)
 
 
-retrieve_schedule(URL_ROOT, start=START, end=END, folder=DATA)
-retrieve_stations(STATIONS_URL, DATA)
-retrieve_feedback(FEEDBACK_URL, DATA)
+def ingest(url_root, stations_url, feedback_url, start, end, folder):
+    retrieve_schedule(url_root, start=start, end=end, folder=folder)
+    retrieve_stations(stations_url, folder)
+    retrieve_feedback(feedback_url, folder)

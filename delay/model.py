@@ -1,19 +1,15 @@
-import sys
-
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.externals import joblib
 from sklearn.feature_selection import SelectKBest
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
-from sklearn.preprocessing import OneHotEncoder
 from sqlalchemy import create_engine
-from sklearn.externals import joblib
 
-from config import CONNECTION_STRING, ALL_FEATURES, CATEGORICAL_FEATURES, TARGET
+from config import CONNECTION_STRING
+from delay_config import ALL_FEATURES, CATEGORICAL_FEATURES, TARGET
 
 
 def build_model_random_forest(df, features, categorical_features, target, split=0.70):

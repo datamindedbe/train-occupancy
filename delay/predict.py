@@ -1,7 +1,8 @@
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 import pandas as pd
-from config import CONNECTION_STRING, ALL_FEATURES, CATEGORICAL_FEATURES, TARGET
+from config import CONNECTION_STRING
+from delay_config import ALL_FEATURES, CATEGORICAL_FEATURES
 
 def predict(all_features, categorical_features, connection_string, filename):
     engine = create_engine(connection_string)
