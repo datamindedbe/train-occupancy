@@ -1,1 +1,9 @@
 config.py
+.DS_Store
+.idea/
+.ipynb_checkpoints/
+*.pyc
+data/
+train_occupancy.egg-info/
+utils.pyc
+venv/
