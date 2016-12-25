@@ -238,7 +238,6 @@ class Etl(object):
                 cur.close()
 
     def run(self, batch_size=2000):
-        print "run"
         self.create_tables(self.connection_string)
         results = self.extract_station_file(path.join(self.folder, 'stations'))
         self.write_to_db(results, self.connection_string, table='station')
