@@ -21,8 +21,9 @@ class Ingest(object):
     def retrieve_schedule(self):
         current = self.start
         while current < self.end:
-            ts = current.strftime('%Y-%m-%dT%H-%M')
-            filename = path.join(self.folder, 'connections', ts + '.json')
+            file_ts = current.strftime('%Y-%m-%dT%H-%M')
+            ts = current.strftime('%Y-%m-%dT%H:%M')
+            filename = path.join(self.folder, 'connections', file_ts + '.json')
             if not self.force_ingest and os.path.isfile(filename):
                 print "file %s exists, skipping..." % filename
             else:

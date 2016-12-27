@@ -3,8 +3,6 @@ config.py
 .idea/
 .ipynb_checkpoints/
 *.pyc
-*/*.pyc
 data/
 train_occupancy.egg-info/
-utils.pyc
 venv/
