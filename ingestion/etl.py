@@ -104,7 +104,7 @@ class Etl(object):
                 cur.close()
 
     def extract_connection_files(self, folder, batch_size, last_departure_time=None):
-        json_files = [pos_json for pos_json in os.listdir(folder) if pos_json.endswith('.json')]
+        json_files = [pos_json for pos_json in os.listdir(folder) if pos_json.endswith('.json')].sort()
         result = []
         last_js = ''
         for js in json_files:
