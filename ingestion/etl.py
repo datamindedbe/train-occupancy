@@ -2,25 +2,19 @@ import json
 import os
 from os import path
 
+from datetime import datetime
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
-# def create_database(connection_string):
-#     with connect(connection_string) as con:
-#         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-#         with con.cursor() as cur:
-#             cur.execute('DROP DATABASE IF EXISTS ' + db)
-#             cur.execute('CREATE DATABASE ' + db)
-#             cur.close()
-
 class Etl(object):
-    def __init__(self, connection_string, folder):
+    def __init__(self, connection_string, folder, wipe=False):
+        self.wipe = wipe
         self.connection_string = connection_string
         self.folder = folder
 
-    def create_tables(self, connection_string):
-        with connect(connection_string) as con:
+    def create_tables(self):
+        with connect(self.connection_string) as con:
             con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             with con.cursor() as cur:
                 query = """
@@ -36,7 +30,7 @@ class Etl(object):
                       arrivalDelay FLOAT NOT NULL,
                       route VARCHAR(255) NOT NULL,
                       trip VARCHAR(255) NOT NULL,
-                      id VARCHAR(255) NOT NULL
+                      id VARCHAR(255) NOT NULL PRIMARY KEY
                     );
 
                     DROP TABLE IF EXISTS station CASCADE;
@@ -45,7 +39,7 @@ class Etl(object):
                       country VARCHAR(255) NOT NULL,
                       longitude FLOAT NOT NULL,
                       latitude FLOAT NOT NULL,
-                      id VARCHAR(255) NOT NULL
+                      id VARCHAR(255) NOT NULL PRIMARY KEY
                     );
 
                     DROP TABLE IF EXISTS occupancy CASCADE;
@@ -109,33 +103,37 @@ class Etl(object):
                 cur.execute(query)
                 cur.close()
 
-    def extract_connection_files(self, folder, batch_size):
+    def extract_connection_files(self, folder, batch_size, last_departure_time=None):
         json_files = [pos_json for pos_json in os.listdir(folder) if pos_json.endswith('.json')]
         result = []
+        last_js = ''
         for js in json_files:
-            if not 'station' in js:
-                with open(os.path.join(folder, js)) as json_file:
-                    data = json.load(json_file)
-                    for conn in data['@graph']:
-                        result.append([
-                            conn['departureStop'].replace('http://irail.be/stations/NMBS/', ''),
-                            conn['departureTime'],
-                            conn['departureTime'][:10].replace('-', ''),
-                            conn['departureDelay'] if 'departureDelay' in conn else "0",
-                            conn['arrivalStop'].replace('http://irail.be/stations/NMBS/', ''),
-                            conn['arrivalTime'],
-                            conn['arrivalTime'][:10].replace('-', ''),
-                            conn['arrivalDelay'] if 'arrivalDelay' in conn else "0",
-                            conn['gtfs:route'].replace('http://irail.be/vehicle/', ''),
-                            conn['gtfs:trip'].replace('http://irail.be/trips/', ''),
-                            conn['@id'].replace('http://irail.be/connections/', '')])
-                    if len(result) > batch_size:
-                        return_value = result
-                        result = []
-                        yield (js, return_value)
-        yield (js, result)
+            last_js = js
+            ts = datetime.strptime(js.replace(".json", ""), "%Y-%m-%dT%H-%M")
+            if last_departure_time is not None and ts < last_departure_time:
+                continue
+            with open(os.path.join(self.folder, js)) as json_file:
+                data = json.load(json_file)
+                for conn in data['@graph']:
+                    result.append([
+                        conn['departureStop'].replace('http://irail.be/stations/NMBS/', ''),
+                        conn['departureTime'],
+                        conn['departureTime'][:10].replace('-', ''),
+                        conn['departureDelay'] if 'departureDelay' in conn else "0",
+                        conn['arrivalStop'].replace('http://irail.be/stations/NMBS/', ''),
+                        conn['arrivalTime'],
+                        conn['arrivalTime'][:10].replace('-', ''),
+                        conn['arrivalDelay'] if 'arrivalDelay' in conn else "0",
+                        conn['gtfs:route'].replace('http://irail.be/vehicle/', ''),
+                        conn['gtfs:trip'].replace('http://irail.be/trips/', ''),
+                        conn['@id'].replace('http://irail.be/connections/', '')])
+                if len(result) > batch_size:
+                    return_value = result
+                    result = []
+                    yield (js, return_value)
+        yield (last_js, result)
 
-    def write_to_db(self, result, connection_string, table):
+    def write_to_db(self, result, table, primary_key=None):
         if len(result) == 0:
             return
         result_string = ['(' + ','.join(['\'%s\'' % c for c in r]) + ')' for r in result]
@@ -145,8 +143,10 @@ class Etl(object):
             INSERT INTO %s VALUES
               %s
         """ % (table, result_string)
+        if primary_key is not None:
+            query += "\nON CONFLICT (%s) DO NOTHING\n" % primary_key
 
-        with connect(connection_string) as con:
+        with connect(self.connection_string) as con:
             con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             with con.cursor() as cur:
                 cur.execute(query)
@@ -183,7 +183,7 @@ class Etl(object):
                     data['user_agent']])
             return result
 
-    def extract_distances(self, connection_string):
+    def extract_distances(self):
         query = """
           SELECT o.stationfrom, o.vehicle, o.date, COUNT(*) AS freq
           FROM occupancy o
@@ -194,7 +194,7 @@ class Etl(object):
           GROUP BY o.stationfrom, o.vehicle, o.date
           ORDER by freq
         """
-        with connect(connection_string) as con:
+        with connect(self.connection_string) as con:
             con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
             with con.cursor() as cur:
@@ -219,7 +219,7 @@ class Etl(object):
         result = [[stationfrom, s, route, date, stations.index(s) - stations.index(stationfrom)] for s in stations]
         return result
 
-    def remove_duplicate_connections(self, connection_string):
+    def remove_duplicate_connections(self):
         query = """
             DELETE FROM connection
             WHERE exists(SELECT 1
@@ -231,23 +231,42 @@ class Etl(object):
                        t2.ctid > connection.ctid);
         """
 
-        with connect(connection_string) as con:
+        with connect(self.connection_string) as con:
             con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             with con.cursor() as cur:
                 cur.execute(query)
                 cur.close()
 
+    def get_last_departure_time(self):
+        query = """ SELECT MAX(departuretime) FROM connection """
+
+        with connect(self.connection_string) as con:
+            con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            with con.cursor() as cur:
+                cur.execute(query)
+                result = cur.fetchone()
+                if result is not None:
+                    last_departure_time = result[0]
+                    return last_departure_time
+                return None
+
     def run(self, batch_size=2000):
-        self.create_tables(self.connection_string)
-        results = self.extract_station_file(path.join(self.folder, 'stations'))
-        self.write_to_db(results, self.connection_string, table='station')
-        results = self.extract_feedback_file(path.join(self.folder, 'feedback'))
-        self.write_to_db(results, self.connection_string, table='occupancy')
-        results = self.extract_connection_files(path.join(self.folder, 'connections'), batch_size=batch_size)
+        if self.wipe:
+            self.create_tables()
+            results = self.extract_station_file(path.join(self.folder, 'stations'))
+            self.write_to_db(results, table='station')
+            results = self.extract_feedback_file(path.join(self.folder, 'feedback'))
+            self.write_to_db(results, table='occupancy')
+
+        last_departure_time = self.get_last_departure_time()
+        results = self.extract_connection_files(folder=path.join(self.folder, 'connections'),
+                                                batch_size=batch_size,
+                                                last_departure_time=last_departure_time)
         for result in results:
-            self.write_to_db(result[1], self.connection_string, table='connection')
+            self.write_to_db(result[1], table='connection', primary_key='id')
             print '%s processed' % result[0]
-        self.remove_duplicate_connections(self.connection_string)
-        results = self.extract_distances(self.connection_string)
-        for result in results:
-            self.write_to_db(result, self.connection_string, table='distance')
+
+        if self.wipe:
+            results = self.extract_distances()
+            for result in results:
+                self.write_to_db(result, table='distance')
