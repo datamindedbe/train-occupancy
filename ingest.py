@@ -31,7 +31,7 @@ parser.add_argument('-s', "--startDate", required=False, type=valid_date,
 parser.add_argument('-e', "--endDate", required=False, type=valid_date,
                     help="The End Date - format YYYY-MM-DD. Default is now()")
 parser.add_argument('-o', "--outputFolder", required=False,
-                    help="The folder in which to store the files. Default is '../data'")
+                    help="The folder in which to store the files. Default is 'data/'")
 
 args = parser.parse_args()
 
@@ -46,7 +46,7 @@ else:
     START = END - dateutil.relativedelta.relativedelta(months=1)
 
 WIPE = args.wipe if args.wipe is not None else False
-FOLDER = args.outputFolder if args.outputFolder is not None else '../data'
+FOLDER = args.outputFolder if args.outputFolder is not None else 'data'
 FORCE_INGEST = args.forceIngest if args.forceIngest is not None else False
 
 print "Ingesting from %s to %s. Initialize=%s" % (START, END, WIPE)
