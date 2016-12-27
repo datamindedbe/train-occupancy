@@ -112,7 +112,7 @@ class Etl(object):
             ts = datetime.strptime(js.replace(".json", ""), "%Y-%m-%dT%H-%M")
             if last_departure_time is not None and ts < last_departure_time:
                 continue
-            with open(os.path.join(self.folder, js)) as json_file:
+            with open(os.path.join(folder, js)) as json_file:
                 data = json.load(json_file)
                 for conn in data['@graph']:
                     result.append([
@@ -250,7 +250,30 @@ class Etl(object):
                     return last_departure_time
                 return None
 
+    def tables_exist(self):
+        query = """
+            SELECT EXISTS (
+               SELECT 1
+               FROM   information_schema.tables
+               WHERE  table_schema = 'public'
+               AND    table_name = 'connection'
+            );
+        """
+
+        with connect(self.connection_string) as con:
+            con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            with con.cursor() as cur:
+                cur.execute(query)
+                result = cur.fetchone()
+                if result is not None:
+                    exists = result[0]
+                    return exists
+                return False
+
     def run(self, batch_size=2000):
+        if not self.tables_exist():
+            self.wipe = True
+
         if self.wipe:
             self.create_tables()
             results = self.extract_station_file(path.join(self.folder, 'stations'))
