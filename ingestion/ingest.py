@@ -59,7 +59,15 @@ class Ingest(object):
                 with open(filename, 'w') as outfile:
                     outfile.write(data)
 
+    def create_folders(self):
+        for folder in [path.join(self.folder, 'connections'),
+                       path.join(self.folder, 'stations'),
+                       path.join(self.folder, 'feedback')]:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
     def run(self):
+        self.create_folders()
         self.retrieve_schedule()
         self.retrieve_stations()
         self.retrieve_feedback()
