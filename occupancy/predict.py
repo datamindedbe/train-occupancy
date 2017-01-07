@@ -10,6 +10,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sqlalchemy import create_engine
 
+from config import CONNECTION_STRING
+
 ALL_FEATURES = [
     'useragent',
     'month',
@@ -42,8 +44,6 @@ CATEGORICAL_FEATURES = [
 ]
 
 TARGET = 'occupancy'
-
-CONNECTION_STRING = 'postgresql://krispeeters@localhost:5432/trains'
 
 
 def label_encoder(df, categorical_features):
