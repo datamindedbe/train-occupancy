@@ -6,3 +6,5 @@ config.py
 data/
 train_occupancy.egg-info/
 venv/
+build
+dist
