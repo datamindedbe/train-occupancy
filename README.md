@@ -1,6 +1,7 @@
 # REQUIREMENTS
 * You need python 2, sklearn and related libraries to run these scripts
 * You also need a (postgres) database
+* You can install these via `python setup.py install`
 
 # RUN
 
